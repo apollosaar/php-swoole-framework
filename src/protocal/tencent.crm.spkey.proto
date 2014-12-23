@@ -1,0 +1,16 @@
+package tencent.crm.spkey;
+
+message ReqBody
+{
+    optional string str_uname = 1;     // trd_uname 号码： 工号/靓号
+    optional uint64 uint64_time = 2;       // 时间戳
+    optional string str_token = 3;  // token
+}
+
+message RspBody
+{
+    optional uint32 uint32_status = 1; // 状态位
+    optional string str_msg = 2; //错误信息，没有可以附空
+    optional uint32 uint32_type = 3; //下发何种登录态
+    optional uint32 uint32_name_account = 4; //号码
+}
