@@ -9,8 +9,13 @@
 	$client = new Swoole\Client\AsyncUdpClient();
 	$test = new TestCall();
 	$data = $test ->initReqData();
+	$cmlbInfo = $test ->getCmlbInfo(5910);
+	if(!$cmlbInfo || !is_array($cmlbInfo)){
+		exit() ;
+	}
 	//回调函数
-	$client ->send('10.213.168.89','5000',$data,array($test,'call_back'));
+	$client ->send($cmlbInfo['host'],$cmlbInfo['port'],$data,array($test,'call_back'));
+
 
 	class TestCall {
 		/**
@@ -35,6 +40,26 @@
 			$spkey_Reqbody ->setStrToken('xxxxxxxxx');
 			$data = $spkey_Reqbody ->serializeToString();
 			return $data;
+		}
+		/**
+		 * [getCmlbInfo 获取CMLB信息]
+		 * @return [type] [description]
+		 */
+		public function getCmlbInfo($cmlbNum){
+			$cmlb = new Cmlb();
+	        try{
+	        	//spkey server cmlb num
+	            $cmlb -> init($cmlbNum);
+	        } catch(Exception $e) {
+	            echo "get cmlb error and cmlb num is $cmlbNum \r\n";
+	            return false;
+	        }
+	        $conf = $cmlb -> getOneIntf();
+	        if(is_long($conf)) {
+	            echo "cmlb error \r\n";
+	            return false;
+	        }
+	        return $conf;
 		}
 	}
 ?>
