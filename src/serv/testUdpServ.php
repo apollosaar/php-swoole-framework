@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?
 /**
  * @Author: winterswang
@@ -56,3 +57,13 @@ class testUdpServ extends Swoole\Network\Protocol\BaseServer{
 }
 
 ?>
+=======
+<?php
+
+class testUdpServ extends Swoole\Network\Protocol\BaseServer{
+
+    public function onReceive($server, $fd, $fromId, $data) {
+        $this->server->send($fd, $data);
+    }
+}
+>>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
