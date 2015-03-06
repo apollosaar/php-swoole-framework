@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?
 /**
  * @Author: winterswang
@@ -9,11 +8,11 @@
 
 class testUdpServ extends Swoole\Network\Protocol\BaseServer{
 
-	public function onReceive($server, $fd, $fromId, $data){
-		$data = unserialize($data);
-		if (isset($data['seq'])) {
+    public function onReceive($server, $fd, $fromId, $data){
+	$data = unserialize($data);
+	if (isset($data['seq'])) {
             $data['seq'] ++;
-		}
+	}
 
         $cg = new ConGenerator();
         if($cg ->init($this->server,array('cmd' => '3','seq' => $data['seq'],'serverType' => 'udp'))){
@@ -23,7 +22,7 @@ class testUdpServ extends Swoole\Network\Protocol\BaseServer{
         else{
             error_log('ConGenerator init failed'.PHP_EOL,3,'/tmp/winters.log');
         }
-	}
+    }
 
     public function onTask($server, $taskId, $fromId, $data){
     	$task = unserialize($data);
@@ -57,13 +56,4 @@ class testUdpServ extends Swoole\Network\Protocol\BaseServer{
 }
 
 ?>
-=======
-<?php
 
-class testUdpServ extends Swoole\Network\Protocol\BaseServer{
-
-    public function onReceive($server, $fd, $fromId, $data) {
-        $this->server->send($fd, $data);
-    }
-}
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
