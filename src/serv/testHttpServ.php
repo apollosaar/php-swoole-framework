@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 class testHttpServ extends Swoole\Network\Protocol\BaseServer{
 
@@ -82,12 +81,4 @@ class testHttpServ extends Swoole\Network\Protocol\BaseServer{
    //     $response->header('Connection', 'Keep-Alive');
         $response->end("<h1>Hello Swoole. #".rand(1000, 9999).' and return is '.print_r($ret,true)."</h1>");
     }
-=======
-<?php
-class testHttpServ extends Swoole\Network\Protocol\BaseServer{
-
-    public function onRequest($request, $response) {
-        $response->end("<h1>Hello Swoole. #".rand(1000, 9999)."</h1>");
-    }
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
 }

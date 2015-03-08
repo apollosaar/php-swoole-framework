@@ -102,10 +102,6 @@ abstract class Server implements Server\Driver
         // Creating a swoole server resource object
         $swooleServerName = $this->enableHttp ? '\swoole_http_server' : '\swoole_server';
         $this->sw = new $swooleServerName($this->host, $this->port, $this->mode, $this->sockType);
-<<<<<<< HEAD
-=======
-
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
         // Setting the runtime parameters
         $this->sw->set($this->setting);
 
@@ -117,10 +113,7 @@ abstract class Server implements Server\Driver
         $this->sw->on('Receive', array($this, 'onReceive'));
         $this->sw->on('Close', array($this, 'onClose'));
         $this->sw->on('WorkerStop', array($this, 'onWorkerStop'));
-<<<<<<< HEAD
         $this->sw->on('timer',array($this, 'onTimer'));
-=======
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
         if ($this->enableHttp) {
             $this->sw->on('Request', array($this, 'onRequest'));
         }
@@ -186,11 +179,6 @@ abstract class Server implements Server\Driver
 
     public function onWorkerStart($server, $workerId)
     {
-<<<<<<< HEAD
-        // echo __METHOD__;
-        // exit();
-=======
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
         if($workerId >= $this->setting['worker_num'])
         {
             Console::setProcessName($this->processName  . ': task worker process');
@@ -210,25 +198,14 @@ abstract class Server implements Server\Driver
             include_once $v;
         }
 
-<<<<<<< HEAD
         if ($this->serverClass && class_exists($this->serverClass))
         {
             $this->setProtocol(new $this->serverClass);
-=======
-        if ($this->serverClass&& class_exists($this->serverClass))
-        {
-            $this->setProtocol(new $this->serverClass());
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
-        }
-
+	}
         // check protocol class
         if (! $this->protocol)
         {
-<<<<<<< HEAD
             throw new \Exception("[error] the protocol class " . $this->serverClass . " is empty or undefined");
-=======
-            throw new \Exception("[error] the protocol class " . $this->serverClass() . " is empty or undefined");
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
         }
 
         $this->protocol->onStart($server, $workerId);
@@ -260,14 +237,11 @@ abstract class Server implements Server\Driver
         $this->protocol->onShutdown($server, $workerId);
     }
 
-<<<<<<< HEAD
     public function onTimer($server, $interval)
     {
         $this->protocol->onTimer($server, $interval);
     }
 
-=======
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
     public function onRequest($request, $response) {
         $this->protocol->onRequest($request, $response);
     }
@@ -310,11 +284,6 @@ abstract class Server implements Server\Driver
 	}
 
     public function run($setting = array()) {
-<<<<<<< HEAD
-        echo __METHOD__.PHP_EOL;
-=======
-
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
         $this->setting = array_merge($this->setting, $setting);
         $cmd = isset($_SERVER['argv'][1]) ? strtolower($_SERVER['argv'][1]) : 'help';
         $this->_initRunTime(); // 初始化server资源
@@ -349,17 +318,6 @@ abstract class Server implements Server\Driver
 
 
     protected function start()
-<<<<<<< HEAD
-    {
-        // if ($this->checkServerIsRunning()) {
-        //    $this->log("[warning] " . $this->processName . ": master process file " . $this->masterPidFile . " has already exists!");
-        //    $this->log($this->processName . ": start\033[31;40m [OK] \033[0m");
-        //    return false;
-        // }
-        $this->log($this->processName . ": start\033[31;40m [OK] \033[0m");
-        $this->sw->start();
-    }
-=======
    {
        if ($this->checkServerIsRunning()) {
            $this->log("[warning] " . $this->processName . ": master process file " . $this->masterPidFile . " has already exists!");
@@ -369,7 +327,6 @@ abstract class Server implements Server\Driver
        $this->log($this->processName . ": start\033[31;40m [OK] \033[0m");
        $this->sw->start();
    }
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1
 
 
     protected function shutdown()

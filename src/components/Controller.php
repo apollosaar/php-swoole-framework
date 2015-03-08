@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 <?php
 /**
  * @Author: winterswang
@@ -47,22 +46,8 @@ class Controller
 	 * @return [type] [description]
 	 */
 	public function init(){
-		if ($this ->argv['serverType'] = 'http') {
+		if ($this ->argv['serverType'] == 'http') {
 			$this ->request = $this ->argv['request'];
 		}
 	}
 }
-=======
-<?php
-/**
- * Created by PhpStorm.
- * User: chalesi
- * Date: 14-8-16
- * Time: 下午3:16
- */
-
-class Controller
-{
-
-}
->>>>>>> 8964ab60c5a38870a8babcb47897ff5bcd2f23e1

@@ -28,7 +28,7 @@
 	$client = new Swoole\Client\AsyncUdpClient();
 	$test = new TestCall();
 	$data = array('cmd' =>2,'seq' => 1);
-	$client ->send('10.213.168.89',9501,serialize($data),array($test,'call_back'));
+	$client ->send('218.244.143.62',9501,serialize($data),array($test,'call_back'));
 	// $client ->send('127.0.0.1',9905,'async',array($test,'call_back'));
 	class TestCall {
 		/**
