@@ -3,25 +3,31 @@
  * @Author: winterswang
  * @Date:   2015-02-28 11:16:58
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-06 10:59:25
+ * @Last Modified time: 2015-03-11 21:14:15
  */
 
 class testUdpServ extends Swoole\Network\Protocol\BaseServer{
 
-    public function onReceive($server, $fd, $fromId, $data){
-	$data = unserialize($data);
-	if (isset($data['seq'])) {
-            $data['seq'] ++;
-	}
 
-        $cg = new ConGenerator();
-        if($cg ->init($this->server,array('cmd' => '3','seq' => $data['seq'],'serverType' => 'udp'))){
-            $data = $cg ->getResult();
-            $this->server->send($fd, serialize($data));
-        }
-        else{
-            error_log('ConGenerator init failed'.PHP_EOL,3,'/tmp/winters.log');
-        }
+    public function onReceive($server, $fd, $fromId, $data){
+    	$data = unserialize($data);
+    	if (isset($data['seq'])) {
+                $data['seq'] ++;
+    	}
+
+        $scheduler = new Scheduler();
+        $test = new TestController($server,array());
+        $scheduler->addJobs($test ->test());
+        $scheduler->run();
+        $this->server->send($fd, serialize($data));
+        // $cg = new ConGenerator();
+        // if($cg ->init($this->server,array('cmd' => '3','seq' => $data['seq'],'serverType' => 'udp'))){
+        //     $data = $cg ->getResult();
+        //     $this->server->send($fd, serialize($data));
+        // }
+        // else{
+        //     error_log('ConGenerator init failed'.PHP_EOL,3,'/tmp/winters.log');
+        // }
     }
 
     public function onTask($server, $taskId, $fromId, $data){
@@ -47,10 +53,10 @@ class testUdpServ extends Swoole\Network\Protocol\BaseServer{
 
     public function onTimer($serv, $interval){
         //TODO 基于静态类，完成时间点和执行实例的映射关系
-        $ret = Timer::getFun($interval);
+        $rets = Timer::getFun($interval);
         //执行定时程序
-        if ($ret) {
-            $ret[0] ->{$ret[1]}();
+        foreach($rets as $ret){
+            $ret[0] ->$ret[1]();
         }
     }
 }
