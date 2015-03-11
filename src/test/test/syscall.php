@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-06 20:45:44
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-06 21:26:32
+ * @Last Modified time: 2015-03-11 20:22:16
  */
 
 class SystemCall {
@@ -90,7 +90,7 @@ class Scheduler {
             	echo "task_id ".$task->getTaskId() ." finish \n";
                 unset($this->taskMap[$task->getTaskId()]);
             } else {
-            	 //echo "task_id : ".$task ->getTaskId() . " send a request : " .$res.PHP_EOL;
+            	 echo "task_id : ".$task ->getTaskId() . " send a request : " .$res.PHP_EOL;
                 $this->schedule($task);
             }
         }
@@ -99,46 +99,35 @@ class Scheduler {
 
 //TODO 在这里可以模拟为一个网络请求，用串行思路封装
 
-function test_func(){
-	$func = function (Task $task, Scheduler $scheduler){
-	   	echo "get a request from task_id :" .$task ->getTaskId().PHP_EOL;
-	    $task->setSendValue($task->getTaskId());
+function test_func($data){
+	$func = function (Task $task, Scheduler $scheduler) use ($data){
+	    $data = $data . " test/";
+	    $task->setSendValue($data);
 	    $scheduler->schedule($task);
 	};
 	return $func;
 }
 
-function task($max) {
-    $tid = (yield new SystemCall(test_func()));
-    for ($i = 1; $i <= $max; ++$i) {
-    	sleep(1);
-        echo "This is task $tid iteration $i.\n";
-        yield;
-    }
-}
+function task() {
+	echo "do some local jobs \n";
+    sleep(1);
+    $data = "task";
+    echo "do IO jobs need send data to server\n";
+    $res = (yield new SystemCall(test_func(yield new SystemCall(test_func($data)))));
 
-//TODO 模拟非网络调用回调函数
-function task_test(){
-	sleep(1);
-	echo "do my bussiness \n";
-	sleep(1);
-	echo "need IO to get data \n";
-	$result = (yield 'fd_1001 once');
-	sleep(1);
-	echo "get my data : $result \n";
-	sleep(1);
-	echo "do my bussiness again ^_^ \n";
-	$result = (yield 'fd_1001 twice');
-	sleep(1);
-	echo "get my data : $result \n";
-	sleep(1);
-	echo "do my bussiness again ^_^ \n";
+    sleep(1);
+    // echo "get server response ".print_r($res,true) . "\n";
+    // sleep(1);
+    // $res = (yield new SystemCall(test_func($res)));
+    echo "get server response ".print_r($res,true) . "\n";
 }
 
 $scheduler = new Scheduler;
 
-$scheduler->newTask(task(10));
-$scheduler->newTask(task_test());
+$scheduler->newTask(task());
+//$scheduler->newTask(task_test());
 
 $scheduler->run();
+
+
 ?>

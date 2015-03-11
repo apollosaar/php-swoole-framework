@@ -12,16 +12,14 @@ require dirname(dirname(dirname(__FILE__))) . '/lib/Swoole/require.php';
 //$this->root_path = dirname(dirname(__FILE__));
 //$controller_file=$this->root_path.'/controller/'.$mvc['controller'].'.php';
 
-function fff($fd,$body,$head){
+function fff($fd,$response){
 
-    echo "******************head----start**************\r\n";
-    var_dump($head);
-    echo "******************head----end**************\r\n";
+    echo "******************response----start**************\r\n";
+    var_dump($fd);
+    echo "******************response----start**************\r\n";
+    var_dump($response);
 
-    echo "******************body----start**************\r\n";
-    var_dump($body);
-    echo "******************body----end**************\r\n";
-    $s=json_decode($body,true);
+    $s=json_decode($response['body'],true);
     echo 'get id is '.$s['id'];
     echo 'get name is '.$s['name'];
 
@@ -37,13 +35,14 @@ $app= new \Swoole\Client\AsyncHttpClient('http://10.213.168.89:8091/First/index.
 
 //$app= new \Swoole\Async\HttpClient('http://example.com','GET');
 
-//$app= new \Swoole\Async\HttpClient('http://10.149.28.32:20051','GET');
+//$app= new \Swoole\Async\HttpClient ('http://10.149.28.32:20051','GET');
 
 $app->setCookie(array('skey'=>1123123,'pstky'=>31234));
 //$app->setAuthorization('mark','123');
 //$app->setHeader('Connection','keep-alive');
 //$app->setUserProxy('10.149.19.29','8765');
 $app->execute();
+//$app->closeConnect();
 $app->onReady('fff');
 
 

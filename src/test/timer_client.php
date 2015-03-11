@@ -4,7 +4,7 @@
  * @Author: winterswang
  * @Date:   2015-02-28 12:18:52
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-04 18:02:18
+ * @Last Modified time: 2015-03-11 21:13:50
  */
 
 	require_once "../require.php";
@@ -16,8 +16,8 @@
 	//异步使用client
 	$client = new Swoole\Client\AsyncUdpClient();
 	$test = new TestCall();
-	$data = array('cmd' =>3,'seq' => 1);
-	$client ->send('10.213.168.89',9501,serialize($data),array($test,'call_back'));
+	$data = array('cmd' =>4,'seq' => 1);
+	$client ->send('10.130.73.229',9501,serialize($data),array($test,'call_back'));
 	// $client ->send('127.0.0.1',9905,'async',array($test,'call_back'));
 	class TestCall {
 		/**

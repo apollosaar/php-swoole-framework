@@ -3,11 +3,12 @@
  * @Author: winterswang
  * @Date:   2015-03-10 16:43:45
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-10 21:50:28
+ * @Last Modified time: 2015-03-11 20:49:59
  */
 class Jobs {
     protected $jobsId;
     protected $coroutine;
+    protected $coroutineArr;
     protected $sendValue = '';
     protected $beforeFirstYield = true;
 
@@ -31,17 +32,35 @@ class Jobs {
     public function run() {
         if ($this->beforeFirstYield) {
             $this->beforeFirstYield = false;
-            return $this->coroutine->current();
+            //TODO 取的时候，会递归取
+            return $this ->pop();
+            //return $this->coroutine->current();
         } else {
-            $retval = $this->coroutine->send($this->sendValue);
+            //TODO 发的时候，会递归发
+            $retval = $this ->send($this->sendValue);
+            //$retval = $this->coroutine->send($this->sendValue);
             return $retval;
          }
     }
 
-    public function callback($data){
-    	error_log(__METHOD__.PHP_EOL,3,'/tmp/winters.log');
-	    $this->setSendValue($data);
-	    //$this->coroutine->send('test for client');
+    public function pop(){
+        $coroutine = $this ->coroutine;
+        while ($coroutine instanceof Generator) {
+            $this ->coroutineArr[] = $coroutine;
+            $coroutine = $coroutine ->current();
+        }
+        return $coroutine;
+    }
+
+    public function send($res){
+        $num = count($this ->coroutineArr);
+        echo "num = $num \n";
+        while ($num) {
+            $num --;
+            $coroutine = $this ->coroutineArr[$num];
+            $res = $coroutine ->send($res);
+        }
+        return $this ->coroutineArr[0];
     }
 }
 ?>

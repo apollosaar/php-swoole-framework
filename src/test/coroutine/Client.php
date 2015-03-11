@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-10 20:08:14
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-10 21:24:42
+ * @Last Modified time: 2015-03-11 20:44:44
  */
 
 class Client {
@@ -21,7 +21,7 @@ class Client {
 		$this ->data = $data;
 	}
 
-	public function sendData($callback){
+	public function sendData($callback,$coroutine){
         //闭包调用
         $this->client->on("connect", function($cli){
             echo "connected\n";
@@ -36,9 +36,9 @@ class Client {
             echo "error\n";
         });
 
-        $this->client->on("receive", function($cli, $data) use ($callback){
+        $this->client->on("receive", function($cli, $data) use ($callback,$coroutine){
         	echo "receiving data \n";
-            call_user_func_array($callback, array('data' => $data));
+            call_user_func_array($callback, array('data' => $data,'coroutine' =>$coroutine));
             $cli->close();
         });
 
@@ -46,11 +46,5 @@ class Client {
         }
 	}
 
-	// public function sendData(){
-	// 	$this ->client->connect($this ->ip ,$this ->port);
-	// 	$this ->client->send($this ->data);
-	// 	return $this ->client -> recv();
-	// 	//return 'test for swoole_client';
-	// }
 }
 ?>

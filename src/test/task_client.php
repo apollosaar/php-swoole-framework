@@ -4,19 +4,8 @@
  * @Author: winterswang
  * @Date:   2015-02-28 12:18:52
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-02-28 17:13:45
+ * @Last Modified time: 2015-03-10 15:53:01
  */
-
-	// $client = new swoole_client(SWOOLE_SOCK_UDP, SWOOLE_SOCK_SYNC);
-	// if(!$client->connect('10.213.168.89',9505))
-	// {
-	//     exit("connect failed\n");
-	// }
-	// $data = array('cmd' =>2,'seq' => 1);
-	// $client->send(serialize($data));
-	// $data = $client->recv();
-	// var_dump(unserialize($data));
-
 
 	require_once "../require.php";
 	//引入lib
@@ -28,7 +17,7 @@
 	$client = new Swoole\Client\AsyncUdpClient();
 	$test = new TestCall();
 	$data = array('cmd' =>2,'seq' => 1);
-	$client ->send('218.244.143.62',9501,serialize($data),array($test,'call_back'));
+	$client ->send('10.213.168.89',9501,serialize($data),array($test,'call_back'));
 	// $client ->send('127.0.0.1',9905,'async',array($test,'call_back'));
 	class TestCall {
 		/**

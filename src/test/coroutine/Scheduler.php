@@ -3,11 +3,10 @@
  * @Author: winterswang
  * @Date:   2015-03-10 19:47:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-10 21:54:25
+ * @Last Modified time: 2015-03-11 20:41:45
  */
 class Scheduler {
     protected $jobsId = 1000;
-    protected $jobsMap = [];
     protected $jobsQueue;
 
     public function __construct() {
@@ -17,7 +16,6 @@ class Scheduler {
     public function addJobs(Generator $coroutine) {
         $jid = ++$this->jobsId;
         $job = new Jobs($jid, $coroutine);
-        $this->jobsMap[$jid] = $job;
         $this->schedule($job);
         return $jid;
     }
@@ -34,26 +32,30 @@ class Scheduler {
         while (!$this->jobsQueue->isEmpty()) {
             $job = $this->jobsQueue->dequeue();
             $res = $job ->run();
+            //TODO 需要递归找到最后一个generator
 	        if ($res instanceof Client) {
-	        	//jobs设定的回调函数执行于此
-	            $res ->sendData(array($this,'callback'));
-	            // $data = $res ->sendData();
-	            // $job->setSendValue($data);
-	            //$this ->schedule($job);
+	            $res ->sendData(array($this,'callback'),$job);
 	            continue;
 	        }
             if ($job->isFinished() && empty($res)) {
             	echo "job_id ".$job->getJobsId() ." finish \n";
-                unset($this->jobsMap[$job->getJobsId()]);
             } else {
-            	echo "job_id : ".$job ->getJobsId() . " send a request : " .$res.PHP_EOL;
+            	echo "job_id : ".$job ->getJobsId() . " send a request : " .print_r($res,true).PHP_EOL;
                 $this->schedule($job);
             }
         }
     }
 
-    public function callback($data){
-    	$job = $This ->getJob();
+
+    public function callback($data,$job){
+	    $job->setSendValue($data);
+	    $res = $job ->run();
+	    if ($res instanceof Generator) {
+	    	$this->addJobs($res);
+	    }
+	    if (!$this->jobsQueue->isEmpty()) {
+	    	$this ->run();
+	    }
     }
 
 }
