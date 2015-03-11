@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-04 16:20:14
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-05 09:55:55
+ * @Last Modified time: 2015-03-04 20:09:59
  */
 
 class Timer {
@@ -16,13 +16,14 @@ class Timer {
 	 * @param [type] $interval [description]
 	 * @param array  $class    [description]
 	 */
-	public static function addTimer($interval,$class = array()){
+	public static function addTimer($interval, $userFlag, $class = array()){
 		// 查找是否已存在关键字，没有就加入
-		if (array_key_exists($interval, self::$timerArr)) {
+        $key = $interval . '_' . $userFlag;
+		if (array_key_exists($key, self::$timerArr)) {
 			return false;
 		}
-		self::$timerArr[$interval] = $class;
-		self::$countArr[$interval] = 0;
+		self::$timerArr[$key] = $class;
+        return true;
 	}
 
 	/**
@@ -30,13 +31,13 @@ class Timer {
 	 * @param  [type] $interval [description]
 	 * @return [type]           [description]
 	 */
-	public static function delTimer($interval){
+	public static function delTimer($interval, $userFlag){
 		// 查找是否已存在关键字，有就删除
-		if (! array_key_exists($interval, self::$timerArr)) {
+        $key = $interval . '_' . $userFlag;
+		if (! array_key_exists($key, self::$timerArr)) {
 			return false;
 		}
-		unset(self::$timerArr[$interval]);
-		unset(self::$countArr[$interval]);
+		unset(self::$timerArr[$key]);
 	}
 
 	/**
@@ -46,18 +47,27 @@ class Timer {
 	 */
 	public static function getFun($interval){
 		// 查找是否已存在关键字，有就返回
-		if (array_key_exists($interval, self::$timerArr)) {
-			$cc = self::$timerArr[$interval];
-			if (is_object($cc[0]) && method_exists($cc[0], $cc[1])) {
-				self::$countArr[$interval] ++;
-				return $cc;
-			}
-		}
-		return false;
+        $ccs = array();
+        foreach(self::$timerArr as $key => $val){
+            if(strpos($key, $interval . '') !== false){
+                $cc = self::$timerArr[$key];
+                if (is_object($cc[0]) && method_exists($cc[0], $cc[1])) {
+                    $ccs[] = $cc;
+                }
+            }
+        }
+        return count($ccs) ? $ccs : false;
+
 	}
 
 	public static function getCount($interval){
-		return self::$countArr[$interval];
+        $count = 0;
+        foreach(self::$timerArr as $key => $val){
+            if(strpos($key, $interval . '') !== false){
+                $count ++;
+            }
+        }
+        return $count;
 	}
 }
 ?>
