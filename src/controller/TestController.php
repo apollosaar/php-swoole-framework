@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-02-28 11:11:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-11 21:26:11
+ * @Last Modified time: 2015-03-16 17:42:56
  */
 
 class TestController extends Controller{
@@ -48,31 +48,21 @@ class TestController extends Controller{
 	}
 
 	public function test(){
+		$host = '10.213.168.89';
+		$port = 9905;
+		$timeout = 5;
 		$data = array('cmd' =>2,'seq' => 1);
-
-		echo " do some jobs need send data to server \n";
-		//error_log(__METHOD__.$log,3,'/tmp/winters.log');
-
-		$data = (yield $this ->send($data));
-		echo  __METHOD__.$data.PHP_EOL;
-		//error_log($log,3,'/tmp/winters.log');
-
-		$data = (yield $this ->send($data));
-		echo  __METHOD__.$data.PHP_EOL;
-		//error_log(__METHOD__.unserialize($data),3,'/tmp/winters.log');
-
-		echo "jobs done \n";
-		//error_log(__METHOD__.$log,3,'/tmp/winters.log');
-	}
-	public function send($data){
-		$client = new Client('127.0.0.1',9905,serialize($data));
-		$res = (yield $client);
-		yield $res;
+		//echo " do some jobs need send data to server \n";
+		$data = (yield $this ->test2());
+		//print_r($data);
+		$data = (yield $this ->test2());
+		//print_r($data);
+		$this->server->send($this ->fd, 'test');
+		//var_dump($this);
 	}
 
-	public function getTest($data){
-		$res = (yield $this ->send($data));
-		yield $res;
+	public function test2(){
+		yield new swoole_client(SWOOLE_SOCK_UDP, SWOOLE_SOCK_SYNC);
 	}
 }
 

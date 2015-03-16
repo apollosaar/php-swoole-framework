@@ -3,23 +3,24 @@
  * @Author: winterswang
  * @Date:   2015-02-28 11:16:58
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-11 21:14:15
+ * @Last Modified time: 2015-03-16 17:38:54
  */
-
+require '../test/coroutine/Schedule.php';
 class testUdpServ extends Swoole\Network\Protocol\BaseServer{
 
 
     public function onReceive($server, $fd, $fromId, $data){
-    	$data = unserialize($data);
-    	if (isset($data['seq'])) {
-                $data['seq'] ++;
-    	}
+    	// if (isset($data['seq'])) {
+     //            $data['seq'] ++;
+    	// }
+        $tttt = new Schedule();
+        $test = new TestController($this ->server,$fd,array());
+        $tttt->add($test ->test());
+        $tttt->run();
+        //$this->server->send($fd, serialize(array('cmd' =>111)));
 
-        $scheduler = new Scheduler();
-        $test = new TestController($server,array());
-        $scheduler->addJobs($test ->test());
-        $scheduler->run();
-        $this->server->send($fd, serialize($data));
+
+
         // $cg = new ConGenerator();
         // if($cg ->init($this->server,array('cmd' => '3','seq' => $data['seq'],'serverType' => 'udp'))){
         //     $data = $cg ->getResult();
