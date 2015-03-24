@@ -17,4 +17,6 @@ $server->loadConfig(__DIR__.'/testUdpServ.ini');
 $server->setRequire(BASEPATH . '/src/require.php');
 
 // 启动
+
 $server->run();
+

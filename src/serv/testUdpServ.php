@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-02-28 11:16:58
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-18 21:30:24
+ * @Last Modified time: 2015-03-24 11:27:03
  */
 
 class testUdpServ extends Swoole\Network\Protocol\BaseServer{
@@ -19,14 +19,14 @@ class testUdpServ extends Swoole\Network\Protocol\BaseServer{
     }
 
     public function onTask($server, $taskId, $fromId, $data){
-    	$task = unserialize($data);
+        $task = unserialize($data);
         $task ->onTask();
         $server ->finish(serialize($task));
         return ;
     }
 
     public function onFinish($server, $taskId, $data){
-    	$task = unserialize($data);
+        $task = unserialize($data);
         //自己预设了回调函数，则调用预设的，没有则走默认的task对象的onFinish函数
         if (is_object($task ->obj) && isset($task ->func))
         {

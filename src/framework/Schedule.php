@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-12 14:54:00
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-19 10:05:35
+ * @Last Modified time: 2015-03-24 11:20:48
  */
 class Schedule {
 
@@ -69,8 +69,6 @@ class Schedule {
         while (!$this ->corStack ->isEmpty()) {
             $coroutine = $this ->corStack ->pop();
             $res = $coroutine ->send($res);
-            //$log =  __METHOD__.print_r($res,true).PHP_EOL;
-            //error_log($log,3,'/tmp/schedule.log');
             if (empty($res)) {
                 return ;
             }

@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-02-28 11:11:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-23 18:25:14
+ * @Last Modified time: 2015-03-24 11:15:41
  */
 class TestController {
     public $server;
@@ -58,4 +58,5 @@ class TestController {
         yield $data;
     }
 }
+
 ?>

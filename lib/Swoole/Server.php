@@ -179,8 +179,10 @@ abstract class Server implements Server\Driver
 
     public function onWorkerStart($server, $workerId)
     {
+
         // echo __METHOD__;
         // exit();
+
         if($workerId >= $this->setting['worker_num'])
         {
             Console::setProcessName($this->processName  . ': task worker process');
@@ -203,6 +205,7 @@ abstract class Server implements Server\Driver
         if ($this->serverClass && class_exists($this->serverClass))
         {
             $this->setProtocol(new $this->serverClass);
+
         }
 
         // check protocol class
@@ -287,7 +290,7 @@ abstract class Server implements Server\Driver
 	}
 
     public function run($setting = array()) {
-        echo __METHOD__.PHP_EOL;
+
         $this->setting = array_merge($this->setting, $setting);
         $cmd = isset($_SERVER['argv'][1]) ? strtolower($_SERVER['argv'][1]) : 'help';
         $this->_initRunTime(); // 初始化server资源
@@ -322,6 +325,7 @@ abstract class Server implements Server\Driver
 
 
     protected function start()
+
     {
         // if ($this->checkServerIsRunning()) {
         //    $this->log("[warning] " . $this->processName . ": master process file " . $this->masterPidFile . " has already exists!");
@@ -331,7 +335,6 @@ abstract class Server implements Server\Driver
         $this->log($this->processName . ": start\033[31;40m [OK] \033[0m");
         $this->sw->start();
     }
-
 
     protected function shutdown()
     {

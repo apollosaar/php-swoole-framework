@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-02-28 15:29:13
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-02-28 16:33:07
+ * @Last Modified time: 2015-03-24 11:27:24
  */
 class TestTask extends Task {
 
@@ -12,6 +12,10 @@ class TestTask extends Task {
 		$this ->data = $data;
 	}
 
+	/**
+	 * [onTask description]
+	 * @return [type] [description]
+	 */
 	public function onTask(){
 		if (is_array($this ->data)) {
 			array_push($this ->data,__METHOD__);
@@ -19,9 +23,12 @@ class TestTask extends Task {
 		error_log(__METHOD__.print_r($this ->data,true),3,'/tmp/winters.log');
 	}
 
+	/**
+	 * [onFinish description]
+	 * @return [type] [description]
+	 */
 	public function onFinish(){
-		error_log(__METHOD__.print_r($this ->data,true),3,'/tmp/winters.log');
-		var_dump($this ->data);
+
 	}
 }
 ?>

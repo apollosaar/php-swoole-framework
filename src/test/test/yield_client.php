@@ -1,14 +1,31 @@
 <?php
-<<<<<<< HEAD
-phpinfo();
-=======
 /**
  * @Author: winterswang
- * @Date:   2015-02-27 11:35:31
+ * @Date:   2015-03-09 16:51:46
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-06 20:07:36
+ * @Last Modified time: 2015-03-10 20:16:49
  */
 
+class Client{
+
+	public $client;
+	public $ip;
+	public $port;
+	public $data;
+
+	public function __construct($ip,$port,$data){
+		//$this ->client = new swoole_client(SWOOLE_SOCK_UDP, SWOOLE_SOCK_SYNC);
+		$this ->ip = $ip;
+		$this ->port = $port;
+		$this ->data = $data;
+	}
+
+	public function send(){
+		// $client->connect($ip,$port);
+		// $client->send($this ->data);
+		echo "send {$this ->data} to {$this ->ip} :{$this ->port} server \n";
+	}
+}
 
 class Task {
     protected $taskId;
@@ -71,11 +88,14 @@ class Scheduler {
         while (!$this->taskQueue->isEmpty()) {
             $task = $this->taskQueue->dequeue();
             $res = $task ->run();
+            if ($res instanceof Client) {
+            	$res ->send();
+            }
             if ($task->isFinished() && empty($res)) {
             	echo "task_id ".$task->getTaskId() ." finish \n";
                 unset($this->taskMap[$task->getTaskId()]);
             } else {
-            	 echo "task_id : ".$task ->getTaskId() . " send a request : " .$res.PHP_EOL;
+            	 echo "task_id : ".$task ->getTaskId() . " send a request : " .print_r($res,true).PHP_EOL;
                 $this->schedule($task);
             }
         }
@@ -83,21 +103,14 @@ class Scheduler {
 }
 
 function task1() {
-
+	$data = array('cmd' =>2,'seq' => 1);
 	sleep(1);
-	echo "do my bussiness \n";
+	echo " do some jobs need send data to server \n";
+	$tid = (yield new Client('10.213.168.89',9501,serialize($data)));
 	sleep(1);
-	echo "need IO to get data \n";
-	$result = (yield 'fd_1001 once');
+	echo "get data from server ".print_r($tid);
 	sleep(1);
-	echo "get my data : $result \n";
-	sleep(1);
-	echo "do my bussiness again ^_^ \n";
-	$result = (yield 'fd_1001 twice');
-	sleep(1);
-	echo "get my data : $result \n";
-	sleep(1);
-	echo "do my bussiness again ^_^ \n";
+	echo "jobs done \n";
 }
 
 function task2() {
@@ -120,5 +133,5 @@ $scheduler->newTask(task1());
 //$scheduler->newTask(task2());
 
 $scheduler->run();
->>>>>>> 3a0e2e7e680900a9771575db45ae930940c17392
+?>
 ?>

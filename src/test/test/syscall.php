@@ -1,14 +1,24 @@
 <?php
-<<<<<<< HEAD
-phpinfo();
-=======
 /**
  * @Author: winterswang
- * @Date:   2015-02-27 11:35:31
+ * @Date:   2015-03-06 20:45:44
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-06 20:07:36
+ * @Last Modified time: 2015-03-11 20:22:16
  */
 
+class SystemCall {
+
+    protected $callback;
+
+    public function __construct(callable $callback) {
+        $this->callback = $callback;
+    }
+
+    public function __invoke(Task $task, Scheduler $scheduler) {
+        $callback = $this->callback;
+        return $callback($task, $scheduler);
+    }
+}
 
 class Task {
     protected $taskId;
@@ -71,6 +81,11 @@ class Scheduler {
         while (!$this->taskQueue->isEmpty()) {
             $task = $this->taskQueue->dequeue();
             $res = $task ->run();
+	        if ($res instanceof SystemCall) {
+	        	//task设定的回调函数执行于此
+	            $res($task, $this);
+	            continue;
+	        }
             if ($task->isFinished() && empty($res)) {
             	echo "task_id ".$task->getTaskId() ." finish \n";
                 unset($this->taskMap[$task->getTaskId()]);
@@ -82,43 +97,37 @@ class Scheduler {
     }
 }
 
-function task1() {
+//TODO 在这里可以模拟为一个网络请求，用串行思路封装
 
-	sleep(1);
-	echo "do my bussiness \n";
-	sleep(1);
-	echo "need IO to get data \n";
-	$result = (yield 'fd_1001 once');
-	sleep(1);
-	echo "get my data : $result \n";
-	sleep(1);
-	echo "do my bussiness again ^_^ \n";
-	$result = (yield 'fd_1001 twice');
-	sleep(1);
-	echo "get my data : $result \n";
-	sleep(1);
-	echo "do my bussiness again ^_^ \n";
+function test_func($data){
+	$func = function (Task $task, Scheduler $scheduler) use ($data){
+	    $data = $data . " test/";
+	    $task->setSendValue($data);
+	    $scheduler->schedule($task);
+	};
+	return $func;
 }
 
-function task2() {
+function task() {
+	echo "do some local jobs \n";
+    sleep(1);
+    $data = "task";
+    echo "do IO jobs need send data to server\n";
+    $res = (yield new SystemCall(test_func(yield new SystemCall(test_func($data)))));
 
-	sleep(1);
-	echo "do my bussiness \n";
-	sleep(1);
-	echo "need IO to get data \n";
-	$result = (yield 'fd_1002');
-	sleep(1);
-	echo "get my data : $result \n";
-	sleep(1);
-	echo "do my bussiness again ^_^ \n";
+    sleep(1);
+    // echo "get server response ".print_r($res,true) . "\n";
+    // sleep(1);
+    // $res = (yield new SystemCall(test_func($res)));
+    echo "get server response ".print_r($res,true) . "\n";
 }
-
 
 $scheduler = new Scheduler;
 
-$scheduler->newTask(task1());
-//$scheduler->newTask(task2());
+$scheduler->newTask(task());
+//$scheduler->newTask(task_test());
 
 $scheduler->run();
->>>>>>> 3a0e2e7e680900a9771575db45ae930940c17392
+
+
 ?>

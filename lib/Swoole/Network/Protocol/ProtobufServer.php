@@ -121,8 +121,14 @@ class ProtobufServer extends Swoole\Network\Protocol implements Swoole\Server\Pr
 
     }
 
+    public function onTimer($serv, $interval){
+
+    }
+
     public function onFinish($serv, $taskId, $data)
     {
 
     }
+
 }
+

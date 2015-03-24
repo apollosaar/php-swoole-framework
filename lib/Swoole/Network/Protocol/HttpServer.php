@@ -341,6 +341,10 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
 
     }
 
+    public function onTimer($serv, $interval){
+
+    }
+
     /**
      * @param \swoole_server $serv
      * @param $fd
@@ -349,4 +353,7 @@ class HttpServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
     function onClose($serv, $fd, $from_id)
     {
     }
+
 }
+
+
