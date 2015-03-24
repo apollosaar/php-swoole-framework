@@ -27,19 +27,13 @@ class AsyncUdpClient
             echo "error\n";
         });
 
-        $this->client->on("receive", function($cli, $data){
-            //$tmpFd = $this->requests[$cli->sock]['tmpFd'];
-            var_dump($data);
-            call_user_func_array($this->requests[$cli->sock]['parse'], array('r' => 0, 'data' => $data));
-            unset($this->requests[$cli->sock]);
+        $this->client->on("receive", function($cli, $data) use ($callback){
+            echo "receiving data \n";
+            call_user_func_array($callback, array('r' => 0, 'data' => $data));
             $cli->close();
         });
 
         if($this->client->connect($host, $port, $timeout)){
-            $tmpFd = $this->client->sock . microtime(true) . rand(); // 伪fd
-            $this->requests[$this->client->sock]['buffer'] = $data;
-            $this->requests[$this->client->sock]['parse'] = $callback;
-            $this->requests[$this->client->sock]['tmpFd'] = $tmpFd;
         }
     }
 }

@@ -31,6 +31,7 @@ class TestAutoLoad {
 	 * @return [type]            [description]
 	 */
 	public static function auto_load($className){
+		$time1 = microtime(true);
 		$pathArr = array();
 		//root_path 为空，默认添加src目录
 		if(empty(self::$root_path)){
@@ -47,9 +48,9 @@ class TestAutoLoad {
 		}
 		foreach ($pathArr as $key => $path) {
 			$class_file = $path.DIRECTORY_SEPARATOR.$className.".php";
-			var_dump($class_file);
 			if (is_file($class_file)) {
 				include_once($class_file);
+
 				break;
 			}
 		}
