@@ -10,4 +10,5 @@ interface Protocol
     function onShutdown($server, $worker_id);
     function onTask($serv, $task_id, $from_id, $data);
     function onFinish($serv, $task_id, $data);
+    function onTimer($serv, $interval);
 }

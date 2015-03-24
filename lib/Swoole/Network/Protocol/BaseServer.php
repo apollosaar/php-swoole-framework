@@ -35,5 +35,9 @@ class BaseServer extends Swoole\Network\Protocol implements Swoole\Server\Protoc
         {
 
         }
+        public function onTimer($serv, $interval)
+        {
+
+        }
         public function onRequest($request, $response) {}
 }

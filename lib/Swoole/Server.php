@@ -113,6 +113,7 @@ abstract class Server implements Server\Driver
         $this->sw->on('Receive', array($this, 'onReceive'));
         $this->sw->on('Close', array($this, 'onClose'));
         $this->sw->on('WorkerStop', array($this, 'onWorkerStop'));
+        $this->sw->on('timer',array($this, 'onTimer'));
         if ($this->enableHttp) {
             $this->sw->on('Request', array($this, 'onRequest'));
         }
@@ -237,6 +238,11 @@ abstract class Server implements Server\Driver
     public function onWorkerStop($server, $workerId)
     {
         $this->protocol->onShutdown($server, $workerId);
+    }
+
+    public function onTimer($server, $interval)
+    {
+        $this->protocol->onTimer($server, $interval);
     }
 
     public function onRequest($request, $response) {
