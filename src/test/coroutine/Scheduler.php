@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-10 19:47:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-09 15:33:08
+ * @Last Modified time: 2015-04-10 17:59:46
  */
 class Scheduler {
 
@@ -23,8 +23,11 @@ class Scheduler {
      */
     public function add(Generator $g){
 
-        $res = $this ->initStack($g);
-        $this ->run($res);
+        while ($g instanceof Generator) {
+            $this ->corStack ->push($g);
+            $g = $g ->current();
+        }
+        $this ->run($g);
     }
 
     /**
@@ -32,13 +35,13 @@ class Scheduler {
      * @param  Generator $g [description]
      * @return [type]       [description]
      */
-    private function initStack(Generator $g){
-        while ($g instanceof Generator) {
-            $this ->corStack ->push($g);
-            $g = $g ->current();
-        }
-        return $g;
-    }
+    // private function initStack(Generator $g){
+    //     while ($g instanceof Generator) {
+    //         $this ->corStack ->push($g);
+    //         $g = $g ->current();
+    //     }
+    //     return $g;
+    // }
 
     /**
      * [run 执行调度，判断IO类型，执行IO操作]
@@ -47,13 +50,15 @@ class Scheduler {
      */
     public function run($c){
 
-        //$this ->log(__METHOD__. " c ==== " .print_r($c,true));
-        if ($c instanceof TestClient) 
+        $this ->log(__METHOD__. " c ==== " .print_r($c,true));
+        if (is_subclass_of($c,'TestClient')) 
         {
-            $this ->sendData($c);       
+            $this ->log(__METHOD__. " send DATA ");
+            $c ->sendData(array($this,'callback'));       
         }else
-        {
-            $this ->callback($c);
+       {
+            $this ->log(__METHOD__. " callback");
+            $this ->callback(0,'',$c);
         }
     }
 
@@ -62,16 +67,19 @@ class Scheduler {
      * @param  [type] $data [description]
      * @return [type]       [description]
      */
-    public function callback($res){
-
+    public function callback($r, $key, $res){
+        $this ->log(__METHOD__ . " res====" . print_r($res,true));
         if (empty($res)) {
             return;
         }
-        $res = $this ->send($res);  
+        // xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+        $res = $this ->send(array('r' => $r, 'data' => $res));  
+        
         if ($res) {
             $this ->add($res);
         } 
-        
+        //$xhprof_data = xhprof_disable(); 
+        //$this ->log(__METHOD__.print_r($xhprof_data,true));
     }
 
     public function send($data){
@@ -79,7 +87,7 @@ class Scheduler {
         while (!$this ->corStack ->isEmpty()) {
             $g = $this ->corStack ->pop();
             $data = $g ->send($data);
-            //$this ->log(__METHOD__ . " send data ====" . print_r($data,true));
+            $this ->log(__METHOD__ . " send data ====" . print_r($data,true));
 
             if ($data instanceof Generator) {
                 //$this ->log(__METHOD__." in while");
@@ -99,36 +107,36 @@ class Scheduler {
      * @param  TestClient $tc [description]
      * @return [type]         [description]
      */
-    public function sendData(TestClient $tc){
-        $client = new  swoole_client(SWOOLE_SOCK_UDP, SWOOLE_SOCK_ASYNC);
-        $client->on("connect", function($cli) use($tc){
-            $cli->send($tc ->data);
-        });
+    // public function sendData(TestClient $tc){
+    //     $client = new  swoole_client(SWOOLE_SOCK_UDP, SWOOLE_SOCK_ASYNC);
+    //     $client->on("connect", function($cli) use($tc){
+    //         $cli->send($tc ->data);
+    //     });
 
-        $client->on('close', function($cli){
-        });
+    //     $client->on('close', function($cli){
+    //     });
 
-        $client->on('error', function($cli){
-            $cli ->close();
-            $this ->callback(array('r' => 1, 'error_msg' => 'conncet error'));
-        });
+    //     $client->on('error', function($cli){
+    //         $cli ->close();
+    //         $this ->callback(array('r' => 1, 'error_msg' => 'conncet error'));
+    //     });
 
-        $client->on("receive", function($cli, $data){
-            $cli->close();
-            $this ->callback(array('r' => 0, 'data' =>$data));
-        });
+    //     $client->on("receive", function($cli, $data){
+    //         $cli->close();
+    //         $this ->callback(array('r' => 0, 'data' =>$data));
+    //     });
 
-        if($client->connect($tc ->ip, $tc ->port, $tc ->timeout)){
-            // if (intval($tc ->timeout) >0) {
-            //     swoole_timer_after(intval($tc ->timeout) * 1000, function() use($client){
-            //         if ($client ->isConnected()) {
-            //             $client ->close();
-            //             $this ->callback(array('r' => 2 , 'error_msg' => 'timeout'));
-            //         }
-            //     });
-            // }
-        }
-    }
+    //     if($client->connect($tc ->ip, $tc ->port, $tc ->timeout)){
+    //         if (intval($tc ->timeout) >0) {
+    //             swoole_timer_after(intval($tc ->timeout) * 1000, function() use($client){
+    //                 if ($client ->isConnected()) {
+    //                     $client ->close();
+    //                     $this ->callback(array('r' => 2 , 'error_msg' => 'timeout'));
+    //                 }
+    //             });
+    //         }
+    //     }
+    // }
 
     public function log($log){
         $time = date('Y-m-d H:i:s');
