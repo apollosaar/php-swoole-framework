@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-04-10 14:21:27
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-10 17:23:00
+ * @Last Modified time: 2015-04-11 13:31:50
  */
 
 class MultiCall extends TestClient {
@@ -38,6 +38,7 @@ class MultiCall extends TestClient {
 
 	public function sendData(callable $callback)
 	{
+		$this ->log(__METHOD__. " callList = ".print_r($this ->callList,true));
 		$this ->callback = $callback;
 		for ($i=0; $i < count($this ->callList); $i++) { 
 			$this ->callList[$i] ->sendData(array($this ,'packRsp'));
@@ -47,12 +48,19 @@ class MultiCall extends TestClient {
 
 	public function packRsp($r,$client_key,$data)
 	{
+		$this ->log(__METHOD__." r = $r client_key = $client_key data = ".print_r($data,true));
 		$this ->callRsp[$client_key] = array('r' =>$r, 'data' => $data);
 		//收包完成
-		if (count($this ->callRsp) == $client_key) 
+		if (count($this ->callRsp) > $client_key) 
 		{
+			$this ->log(__METHOD__ . " get all the rsp ==== ".print_r($this ->callRsp,true));
 			call_user_func_array($this ->callback, array('r' => $r, 'key' => '', 'data' =>$this ->callRsp));
 		}
+	}
+
+	public function log($log){
+        $time = date('Y-m-d H:i:s');
+        error_log($time . $log . PHP_EOL, 3, '/tmp/'.__CLASS__.'.log');
 	}
 }
 
