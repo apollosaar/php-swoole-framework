@@ -1,12 +1,13 @@
 <?php
 /**
  * @Author: winterswang
- * @Date:   2015-03-10 20:08:14
+ * @Date:   2015-04-11 14:03:41
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-11 17:11:08
+ * @Last Modified time: 2015-04-11 17:11:29
  */
+
 require_once 'TestClient.php';
-class UdpTestClient extends TestClient {
+class TcpTestClient extends TestClient{
 
 	public $ip;
 	public $port;
@@ -31,7 +32,7 @@ class UdpTestClient extends TestClient {
 
 	public function sendData(callable $callback){
 
-        $client = new  swoole_client(SWOOLE_SOCK_UDP, SWOOLE_SOCK_ASYNC);
+        $client = new  swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_ASYNC);
 
         $client->on("connect", function($cli){
             $cli->send($this ->data);
@@ -60,7 +61,8 @@ class UdpTestClient extends TestClient {
             //         }
             //     });
             // }
-        }
+        }		
 	}
 }
+
 ?>
