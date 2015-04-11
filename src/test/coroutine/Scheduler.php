@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-10 19:47:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-10 17:59:46
+ * @Last Modified time: 2015-04-11 17:19:10
  */
 class Scheduler {
 
@@ -31,33 +31,20 @@ class Scheduler {
     }
 
     /**
-     * [initStack 初始化栈]
-     * @param  Generator $g [description]
-     * @return [type]       [description]
-     */
-    // private function initStack(Generator $g){
-    //     while ($g instanceof Generator) {
-    //         $this ->corStack ->push($g);
-    //         $g = $g ->current();
-    //     }
-    //     return $g;
-    // }
-
-    /**
      * [run 执行调度，判断IO类型，执行IO操作]
      * @param  $c           [description]
      * @return [type]       [description]
      */
     public function run($c){
 
-        $this ->log(__METHOD__. " c ==== " .print_r($c,true));
+        //$this ->log(__METHOD__. " c ==== " .print_r($c,true));
         if (is_subclass_of($c,'TestClient')) 
         {
-            $this ->log(__METHOD__. " send DATA ");
+            //$this ->log(__METHOD__. " send DATA ");
             $c ->sendData(array($this,'callback'));       
         }else
        {
-            $this ->log(__METHOD__. " callback");
+            //$this ->log(__METHOD__. " callback");
             $this ->callback(0,'',$c);
         }
     }
@@ -68,7 +55,8 @@ class Scheduler {
      * @return [type]       [description]
      */
     public function callback($r, $key, $res){
-        $this ->log(__METHOD__ . " res====" . print_r($res,true));
+        
+        //$this ->log(__METHOD__ . "key == $key res====" . print_r($res,true));
         if (empty($res)) {
             return;
         }
@@ -87,7 +75,7 @@ class Scheduler {
         while (!$this ->corStack ->isEmpty()) {
             $g = $this ->corStack ->pop();
             $data = $g ->send($data);
-            $this ->log(__METHOD__ . " send data ====" . print_r($data,true));
+            //$this ->log(__METHOD__ . " send data ====" . print_r($data,true));
 
             if ($data instanceof Generator) {
                 //$this ->log(__METHOD__." in while");
