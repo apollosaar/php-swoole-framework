@@ -1,82 +1,104 @@
 <?php
 /**
  * @Author: winterswang
- * @Date:   2015-03-12 14:54:00
+ * @Date:   2015-03-10 19:47:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-03-24 11:20:48
+ * @Last Modified time: 2015-04-14 15:54:51
  */
 class Schedule {
 
     protected $corStack;
-    protected $corQueue;
-    protected $beforeFirstYield = true;
 
-    public function __construct() {
-        $this->corStack = new SplStack();
-        $this->corQueue = new SplQueue();
+    /**
+     * [__construct 初始化栈]
+     */
+    public function __construct(){
+
+        $this ->corStack = new SplStack();
     }
 
-    public function add(Generator $coroutine){
-        $this ->corQueue ->enqueue($coroutine);
+    /**
+     * [add 添加G到调度器内]
+     * @param Generator $g [description]
+     */
+    public function add(Generator $g){
+
+        while ($g instanceof Generator) {
+            $this ->corStack ->push($g);
+            $g = $g ->current();
+        }
+        $this ->run($g);
     }
 
-    public function run(){
-        while (!$this->corQueue->isEmpty()) {
-            $coroutine = $this->corQueue->dequeue();
-            $res =  $this ->pop($coroutine);
-            if ($res instanceof Client) {
-                $res ->sendData(array($this,'callback'));
-                if (intval($res ->timeout) >0) {
-                    swoole_timer_after(intval($res ->timeout) * 1000, function() use($res){
-                        if ($res ->is_close) {
-                            return;
-                        }
-                        $log = "after 5 seconds timeout \n";
-                        error_log($log,3,'/tmp/timeout.log');
-                        $res ->client ->close();
-                        $this ->callback('timeout');
-                    });
-                }
-            }
-            else{
-                $this ->callback($res);
-            }
+    /**
+     * [run 执行调度，判断IO类型，执行IO操作]
+     * @param  $c           [description]
+     * @return [type]       [description]
+     */
+    public function run($c){
+
+        //$this ->log(__METHOD__. " c ==== " .print_r($c,true));
+        if (is_subclass_of($c,'TestClient')) 
+        {
+            //$this ->log(__METHOD__. " send DATA ");
+            $c ->sendData(array($this,'callback'));       
+        }else
+       {
+            //$this ->log(__METHOD__. " callback");
+            $this ->callback(0,'',$c);
         }
     }
 
-    public function callback($data){
-
-        if (!empty($data)) {
-            $res = $this->send($data);
-            $log = __METHOD__.'xxxxxx'.print_r($data,true).PHP_EOL;
-            error_log($log,3,'/tmp/schedule.log');
-            if ($res && ($res instanceof Generator)) {
-                $this->add($res);
-                $this ->run();
-            }
+    /**
+     * [callback 回吐数据到协程中，并判断是否还有中断，有中断，调用run函数]
+     * @param  [type] $data [description]
+     * @return [type]       [description]
+     */
+    public function callback($r, $key, $res){
+        
+        //$this ->log(__METHOD__ . "key == $key res====" . print_r($res,true));
+        if (empty($res)) {
+            return;
         }
+        // xhprof_enable(XHPROF_FLAGS_CPU + XHPROF_FLAGS_MEMORY);
+        $res = $this ->send(array('r' => $r, 'data' => $res));  
+        
+        if ($res) {
+            $this ->add($res);
+        } 
+        //$xhprof_data = xhprof_disable(); 
+        //$this ->log(__METHOD__.print_r($xhprof_data,true));
     }
 
-    public function pop($coroutine){
-        while ($coroutine instanceof Generator) {
-            $this->corStack->push($coroutine);
-            $coroutine = $coroutine ->current();
-        }
-        return $coroutine;
-    }
+    public function send($data){
 
-    public function send($res){
         while (!$this ->corStack ->isEmpty()) {
-            $coroutine = $this ->corStack ->pop();
-            $res = $coroutine ->send($res);
-            if (empty($res)) {
-                return ;
+            $g = $this ->corStack ->pop();
+            $data = $g ->send($data);
+            //$this ->log(__METHOD__ . " send data ====" . print_r($data,true));
+
+            if ($data instanceof Generator) {
+                //$this ->log(__METHOD__." in while");
+                return $g;
             }
-            if($res instanceof Generator){
-               return $coroutine;
+
+            if (empty($data)) {
+                return false;
             }
         }
-        return $coroutine;
+
+        return $g;        
+    }
+
+    public function log($log){
+        $time = date('Y-m-d H:i:s');
+        error_log($time . $log . PHP_EOL, 3, '/tmp/'.__CLASS__.'.log');
     }
 }
 ?>
+
+
+
+
+
+
