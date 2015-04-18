@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-10 19:47:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-11 17:19:10
+ * @Last Modified time: 2015-04-18 10:05:28
  */
 class Scheduler {
 
@@ -37,7 +37,7 @@ class Scheduler {
      */
     public function run($c){
 
-        //$this ->log(__METHOD__. " c ==== " .print_r($c,true));
+        $this ->log(__METHOD__. " c ==== " .print_r($c,true));
         if (is_subclass_of($c,'TestClient')) 
         {
             //$this ->log(__METHOD__. " send DATA ");
@@ -56,7 +56,7 @@ class Scheduler {
      */
     public function callback($r, $key, $res){
         
-        //$this ->log(__METHOD__ . "key == $key res====" . print_r($res,true));
+        $this ->log(__METHOD__ . "key == $key res====" . print_r($res,true));
         if (empty($res)) {
             return;
         }
@@ -74,8 +74,8 @@ class Scheduler {
 
         while (!$this ->corStack ->isEmpty()) {
             $g = $this ->corStack ->pop();
-            $data = $g ->send($data);
-            //$this ->log(__METHOD__ . " send data ====" . print_r($data,true));
+            $this ->log(__METHOD__ . " send data ====" . print_r($data,true));
+            $data = $g ->send($data); 
 
             if ($data instanceof Generator) {
                 //$this ->log(__METHOD__." in while");
@@ -89,42 +89,6 @@ class Scheduler {
 
         return $g;        
     }
-
-    /**
-     * [sendData 异步IO操作]
-     * @param  TestClient $tc [description]
-     * @return [type]         [description]
-     */
-    // public function sendData(TestClient $tc){
-    //     $client = new  swoole_client(SWOOLE_SOCK_UDP, SWOOLE_SOCK_ASYNC);
-    //     $client->on("connect", function($cli) use($tc){
-    //         $cli->send($tc ->data);
-    //     });
-
-    //     $client->on('close', function($cli){
-    //     });
-
-    //     $client->on('error', function($cli){
-    //         $cli ->close();
-    //         $this ->callback(array('r' => 1, 'error_msg' => 'conncet error'));
-    //     });
-
-    //     $client->on("receive", function($cli, $data){
-    //         $cli->close();
-    //         $this ->callback(array('r' => 0, 'data' =>$data));
-    //     });
-
-    //     if($client->connect($tc ->ip, $tc ->port, $tc ->timeout)){
-    //         if (intval($tc ->timeout) >0) {
-    //             swoole_timer_after(intval($tc ->timeout) * 1000, function() use($client){
-    //                 if ($client ->isConnected()) {
-    //                     $client ->close();
-    //                     $this ->callback(array('r' => 2 , 'error_msg' => 'timeout'));
-    //                 }
-    //             });
-    //         }
-    //     }
-    // }
 
     public function log($log){
         $time = date('Y-m-d H:i:s');

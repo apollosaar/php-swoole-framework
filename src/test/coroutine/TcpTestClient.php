@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-04-11 14:03:41
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-11 17:11:29
+ * @Last Modified time: 2015-04-16 10:37:53
  */
 
 require_once 'TestClient.php';
@@ -53,14 +53,14 @@ class TcpTestClient extends TestClient{
 
         if($client->connect($this ->ip, $this ->port, $this ->timeout)){
 
-            // if (intval($this ->timeout) >0) {
-            //     swoole_timer_after(intval($this ->timeout) * 1000, function() use($client){
-            //         if ($client ->isConnected()) {
-            //             $client ->close();
-            //             call_user_func_array($callback, array('r' => 2 , 'error_msg' => 'timeout'));
-            //         }
-            //     });
-            // }
+            if (intval($this ->timeout) >0) {
+                swoole_timer_after(intval($this ->timeout) * 1000, function() use($client,$callback){
+                    if ($client ->isConnected()) {
+                        $client ->close();
+                        call_user_func_array($callback, array('r' => 2 ,'key' => '', 'error_msg' => 'timeout'));
+                    }
+                });
+            }
         }		
 	}
 }
