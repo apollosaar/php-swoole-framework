@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-10 20:08:14
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-14 15:52:19
+ * @Last Modified time: 2015-04-16 10:37:19
  */
 
 class UdpClient extends Client {
@@ -52,14 +52,14 @@ class UdpClient extends Client {
 
         if($client->connect($this ->ip, $this ->port, $this ->timeout)){
 
-            // if (intval($this ->timeout) >0) {
-            //     swoole_timer_after(intval($this ->timeout) * 1000, function() use($client){
-            //         if ($client ->isConnected()) {
-            //             $client ->close();
-            //             call_user_func_array($callback, array('r' => 2 , 'error_msg' => 'timeout'));
-            //         }
-            //     });
-            // }
+            if (intval($this ->timeout) >0) {
+                swoole_timer_after(intval($this ->timeout) * 1000, function() use($client,$callback){
+                    if ($client ->isConnected()) {
+                        $client ->close();
+                        call_user_func_array($callback, array('r' => 2 ,'key' => '', 'error_msg' => 'timeout'));
+                    }
+                });
+            }
         }
 	}
 }
