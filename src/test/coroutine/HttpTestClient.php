@@ -1,15 +1,15 @@
 <?php
 /**
  * @Author: winterswang
- * @Date:   2015-04-14 11:53:50
+ * @Date:   2015-04-20 14:17:01
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-17 17:26:18
+ * @Last Modified time: 2015-04-22 21:49:38
  */
-
+require_once dirname(dirname(dirname(dirname(__FILE__)))) . '/lib/Swoole/require.php';
 require_once 'TestClient.php';
+
 class HttpTestClient extends TestClient{
 
-    // * Request vars:
     public $host, $port, $path;
     public $scheme;
     public $method;
@@ -36,19 +36,22 @@ class HttpTestClient extends TestClient{
     // * Response vars:
     public $status;
     public $headers = array();
+    public $rspHeaders = array();
     public $content = '';
+    public $request = '';
     public $errormsg;
     // * Tracker variables:
     public $redirect_count = 0;
-	
-    public function __construct($host, $port=80) {
-       
+    public $callback;
+
+    public function __construct($host){
+
         $bits = parse_url($host);
         if(isset($bits['scheme']) && isset($bits['host'])) {
-            $host   = $bits['host'];
+            $host = $bits['host'];
             $scheme = isset($bits['scheme']) ? $bits['scheme'] : 'http';
-            $port   = isset($bits['port']) ? $bits['port'] : 80;
-            $path   = isset($bits['path']) ? $bits['path'] : '/';
+            $port = isset($bits['port']) ? $bits['port'] : 80;
+            $path = isset($bits['path']) ? $bits['path'] : '/';
             
             if (isset($bits['query']))
                 $path .= '?'.$bits['query'];
@@ -62,65 +65,25 @@ class HttpTestClient extends TestClient{
         }
     }
 
-	public function setHeader($header = array()){
-
-        foreach($header as $key => $value) {
+    public function setRequestHeaders($array) {
+        foreach($array as $key => $value) {
             $this->request_headers[$key] = $value;
         }
-	}
+    }
 
-	/**
-	 * [get get,post,put,delete都是封装数据给对象实例，然后yeild回协程调度里，再执行sendData函数，完成发包]
-	 * @param  [type] $url     [description]
-	 * @param  array  $request [description]
-	 * @return [type]          [description]
-	 */
-	public function get($url,$request = array()){
+    public function setMethod($method) {
+        // Manually set the request method (not usually needed).
+        if (!in_array($method, array("GET","POST","PUT","DEL"."ETE"))){
+        	$this ->log(__METHOD__. ' valid method : '.$method);
+        	return false;
+        }
+        $this->method = $method;
+        return true;
+    }
 
-        $this->orig_path = $this->path;
-        if(!empty($this->path))
-            $this->path .= $path;
-        else
-            $this->path = $path;
-        $this->method = 'GET';
-        if ($data) $this->path .= '?'.http_build_query($data);
-        $this->setRequestHeaders($headers);
-
-		yield $this;
-	}
-
-	public function post($url,$data){
-
-        $orig_path = $this->path;
-        if(!empty($this->path))
-            $this->path .= $path;
-        else
-            $this->path = $path;
-        $this->method = 'POST';
-        $this->setRequestHeaders($headers);
-        $this->buildQuery($data);
-
-		yield $this;
-	}
-
-	public function put(){
-
-		yield $this;
-	}
-
-	public function delete(){
-
-		yield $this;
-	}
-
-	public function getHeader(){
-
-	}
-
-    public function setAuthorization($username, $password) {
-
-        $this->username = $username;
-        $this->password = $password;
+    public function setPath($path) {
+        // Manually set the path (not usually needed).
+        $this->path = $path;
     }
 
     public function setUserAgent($string) {
@@ -129,28 +92,29 @@ class HttpTestClient extends TestClient{
         $this->user_agent = $string;
     }
 
-    public function setCookies($array, $replace = false) {
-
-        if ($replace || !is_array(@$this->cookies[$this->host]))
-            $this->cookies[$this->host] = array();
-        $this->cookies[$this->host] = ( $array + $this->cookies[$this->host] );
+    public function setAuthorization($username, $password) {
+        // Sets the HTTP authorization username and password to be used in requests.
+        // Warning: don't forget to unset this in subsequent requests to other servers!
+        $this->username = $username;
+        $this->password = $password;
     }
 
-    public function buildQuery($data) {
-        if(is_string($data)) {
-            $this->postdata = $data;
-            return true;
-        } else if(is_object($data) || is_array($data)){
-            $this->postdata = http_build_query($data);
-            return true;
-        } else {
-            trigger_error("HttpClient::postdata : '".gettype($data)."' is not valid post data.", E_USER_ERROR);
-            return false;
+    public function setScheme($scheme) {
+        // Manually set the path (not usually needed).
+        switch($scheme) {
+            case 'https':
+                $this->scheme = $scheme;
+                //TODO 暂不支持
+                // $this->port = 443;
+                break;
+            case 'http':
+            default:
+                $this->scheme = 'http';
         }
     }
 
-    public function buildRequest() {
-        // Constructs the headers of the HTTP request.
+    public function buildRequest(){
+
         $headers = array();
         $headers[] = "{$this->method} {$this->path} HTTP/1.0"; // * Using 1.1 leads to all manner of problems, such as "chunked" encoding
         $headers[] = "Host: {$this->host}";
@@ -194,43 +158,29 @@ class HttpTestClient extends TestClient{
             $headers[] = 'Content-Length: '.strlen($this->postdata);
         }
         $request = implode("\r\n", $headers)."\r\n\r\n".$this->postdata;
-        return $request;
+        return $request;    	
     }
 
-    public function setScheme($scheme) {
-        // Manually set the path (not usually needed).
-        switch($scheme) {
-            case 'https':
-                $this->scheme = $scheme;
-                $this->port = 443;
-                break;
-            case 'http':
-            default:
-                $this->scheme = 'http';
-        }
+    public function get($path, $data = null, $headers=array()){
+
+        $this->orig_path = $this->path;
+        if(!empty($this->path))
+            $this->path .= $path;
+        else
+            $this->path = $path;
+        $this->method = 'GET';
+        if ($data) $this->path .= '?'.http_build_query($data);
+        $this->setRequestHeaders($headers);
+        $this ->request = $this->buildRequest();
+        yield $this;
     }
 
-    public function setPath($path) {
-        // Manually set the path (not usually needed).
-        $this->path = $path;
-    }
-
-    public function setMethod($method) {
-        // Manually set the request method (not usually needed).
-        if (!in_array($method, array("GET","POST","PUT","DEL"."ETE"))) trigger_error("HttpClient::setMethod() : '$method' is not a valid method", E_USER_ERROR);
-        $this->method = $method;
-    }
-    
-	/**
-	 * [sendData 基于IP,PORT完成发包，只是包相对于纯TCP，做了一层协议包装]
-	 * @return [type] [description]
-	 */
-	public function sendData(callable $callback){
+    public function sendData(callable $callback){
 
         $client = new  swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_ASYNC);
 
         $client->on("connect", function($cli){
-            $cli->send($this ->data);
+            $cli->send($this ->request);
         });
 
         $client->on('close', function($cli){
@@ -242,34 +192,99 @@ class HttpTestClient extends TestClient{
         });
 
         $client->on("receive", function($cli, $data) use($callback){
-            $cli->close();
-            call_user_func_array($callback, array('r' => 0, 'key' => $this ->key, 'data' =>$data));
+            call_user_func_array(array($this, 'packRsp'), array('r' => 0, 'key' => $client, 'data' =>$data));
         });
 
-        if($client->connect($this ->ip, $this ->port, $this ->timeout)){
+        $this ->callback = $callback;
+        if($client->connect($this ->host, $this ->port, $this ->timeout)){
 
             if (intval($this ->timeout) >0) {
                 swoole_timer_after(intval($this ->timeout) * 1000, function() use($client,$callback){
                     if ($client ->isConnected()) {
                         $client ->close();
-                        call_user_func_array($callback, array('r' => 2 ,'key' => '', 'httpClient' => $this));
+                        call_user_func_array($callback, array('r' => 2 ,'key' => '', 'error_msg' => 'timeout'));
                     }
                 });
             }
         }
-	}
+    }
+
+    public function packRsp($r,$k,$data){
+
+        //echo __METHOD__."r = $r k = $k  data === ".print_r($data,true); 
+    	if ($r != 0) {
+    		//LOG
+    		return;
+    	}
+
+        $this ->content .= $data;
+
+    	if (empty($this ->rspHeaders)) {
+    		$this ->parseHeader($data);
+    	}
+    	
+        $body_length = strlen($this ->content);
+        //判断包是否收全
+        //Content-Length
+        if (isset($this ->respHeader['Content-Length']) && $body_length == $this ->respHeader['Content-Length']) {
+
+            $log = __METHOD__." pack finish body === ".$this ->content;
+            $this ->log($log);
+            call_user_func_array($this ->callback, array('r' => 0, 'key' => '', 'data' =>$this ->content));
+            //TODO 合包完成，回调
+        }else{
+            $log = 'header content-lengh = '.$this ->respHeader['Content-Length'] . ' content length == '. strlen($this ->content);
+            $this ->log($log);
+        }
+
+        //chunked 
+        if (isset($this->respHeader['Transfer-Encoding']) and $this->respHeader['Transfer-Encoding'] == 'chunked') {
+
+            //以\r\n分割为两个数组，第一部分是字节长，第二部分为body
+            //字节长不为零，合并body，字节长为零，合并body，返回
+            $parts = explode("\r\n", $data, 2);
+
+            if (intval($parts[0]) != 0 && isset($parts[1])) {
+                $this ->content .= $parts[1];
+                $log = 'chunked packing content  == '. $this ->content."\n";
+                $this ->log($log);
+            }
+            else{
+                $log = 'chunked pack finish content  == '. $this ->content."\n";
+                $this ->log($log);
+                call_user_func_array($this ->callback, array('r' => 0, 'key' => '', 'data' =>$this ->content));                
+            }
+        }
+
+    }
+
+    private function parseHeader($data){
+
+    	$parts = explode("\r\n\r\n", $data, 2);
+		$headerLines = explode("\r\n", $parts[0]);
+		list($this ->rspHeaders['method'], $this ->rspHeaders['uri'], $this ->rspHeaders['protocol']) = explode(' ', $headerLines[0], 3);
+
+        $this->respHeader =  \Swoole\Http\Parser::parseHeaderLine($headerLines);
+
+        if (isset($parts[1])) {
+            $this ->content = $parts[1];
+        }
+
+        print_r($this ->respHeader);
+    }
+
+    public function test($r, $k, $data){
+
+    }
 
 	/**
-	 * [packRsp http存在大包需要多次合包的情况，可以理解为特殊的multicall的实现]
-	 * @return [type] [description]
+	 * [log 简单的LOG]
+	 * @param  [type] $log [description]
+	 * @return [type]      [description]
 	 */
-	public function packRsp(){
-
-        //TODO sendData的回调函数
-        //收到回调，解包
-        //拼包，根据两个指标 trunk_length or header[content-length]
-        //如果拼完，返回给协程调度
-        //没有，return，继续等包
+	public function log($log){
+        $time = date('Y-m-d H:i:s');
+        error_log($time . $log . PHP_EOL, 3, '/tmp/'.__CLASS__.'.log');
 	}
+
 }
-?>
