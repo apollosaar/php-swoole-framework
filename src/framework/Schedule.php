@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-03-10 19:47:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-14 15:54:51
+ * @Last Modified time: 2015-04-25 16:32:55
  */
 class Schedule {
 
@@ -38,7 +38,7 @@ class Schedule {
     public function run($c){
 
         //$this ->log(__METHOD__. " c ==== " .print_r($c,true));
-        if (is_subclass_of($c,'TestClient')) 
+        if (is_subclass_of($c,'Client')) 
         {
             //$this ->log(__METHOD__. " send DATA ");
             $c ->sendData(array($this,'callback'));       
