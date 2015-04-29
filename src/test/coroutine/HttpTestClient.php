@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-04-20 14:17:01
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-22 21:49:38
+ * @Last Modified time: 2015-04-29 16:42:50
  */
 require_once dirname(dirname(dirname(dirname(__FILE__)))) . '/lib/Swoole/require.php';
 require_once 'TestClient.php';
@@ -161,6 +161,20 @@ class HttpTestClient extends TestClient{
         return $request;    	
     }
 
+    public function buildQuery($data) {
+        
+        if(is_string($data)) {
+            $this->postdata = $data;
+            return true;
+        } else if(is_object($data) || is_array($data)){
+            $this->postdata = http_build_query($data);
+            return true;
+        } else {
+            //trigger_error("HttpClient::postdata : '".gettype($data)."' is not valid post data.", E_USER_ERROR);
+            return false;
+        }
+    }
+
     public function get($path, $data = null, $headers=array()){
 
         $this->orig_path = $this->path;
@@ -171,7 +185,20 @@ class HttpTestClient extends TestClient{
         $this->method = 'GET';
         if ($data) $this->path .= '?'.http_build_query($data);
         $this->setRequestHeaders($headers);
-        $this ->request = $this->buildRequest();
+        $this->buildRequest();
+        yield $this;
+    }
+
+    public function post($path, $data, $headers=array()){
+
+        $this ->orig_path = $this->path;
+        if(!empty($this->path))
+            $this->path .= $path;
+        else
+            $this->path = $path;
+        $this->method = 'POST';
+        $this->setRequestHeaders($headers);
+        $this ->request = $this->buildQuery($data);
         yield $this;
     }
 
@@ -273,9 +300,6 @@ class HttpTestClient extends TestClient{
         print_r($this ->respHeader);
     }
 
-    public function test($r, $k, $data){
-
-    }
 
 	/**
 	 * [log 简单的LOG]
