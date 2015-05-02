@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-04-20 14:17:01
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-29 16:42:50
+ * @Last Modified time: 2015-05-01 18:12:01
  */
 require_once dirname(dirname(dirname(dirname(__FILE__)))) . '/lib/Swoole/require.php';
 require_once 'TestClient.php';
@@ -46,6 +46,7 @@ class HttpTestClient extends TestClient{
 
     public function __construct($host){
 
+        date_default_timezone_set('asia/shanghai');
         $bits = parse_url($host);
         if(isset($bits['scheme']) && isset($bits['host'])) {
             $host = $bits['host'];
@@ -157,8 +158,7 @@ class HttpTestClient extends TestClient{
         if ($this->postdata && !isset($this->request_headers['Content-Length'])) {
             $headers[] = 'Content-Length: '.strlen($this->postdata);
         }
-        $request = implode("\r\n", $headers)."\r\n\r\n".$this->postdata;
-        return $request;    	
+        $this ->request = implode("\r\n", $headers)."\r\n\r\n".$this->postdata; 	
     }
 
     public function buildQuery($data) {
@@ -186,7 +186,10 @@ class HttpTestClient extends TestClient{
         if ($data) $this->path .= '?'.http_build_query($data);
         $this->setRequestHeaders($headers);
         $this->buildRequest();
-        yield $this;
+
+        $res = (yield $this);
+        //$this ->log(__METHOD__." GET RESULT = ". print_r($res,true));
+        yield $res;
     }
 
     public function post($path, $data, $headers=array()){
@@ -198,8 +201,12 @@ class HttpTestClient extends TestClient{
             $this->path = $path;
         $this->method = 'POST';
         $this->setRequestHeaders($headers);
-        $this ->request = $this->buildQuery($data);
-        yield $this;
+        $this->buildQuery($data);
+        $this->buildRequest();
+
+        $res = (yield $this);
+        //$this ->log(__METHOD__." POST RESULT = ". print_r($res,true));
+        yield $res;
     }
 
     public function sendData(callable $callback){
@@ -254,9 +261,8 @@ class HttpTestClient extends TestClient{
         //判断包是否收全
         //Content-Length
         if (isset($this ->respHeader['Content-Length']) && $body_length == $this ->respHeader['Content-Length']) {
-
-            $log = __METHOD__." pack finish body === ".$this ->content;
-            $this ->log($log);
+            $this ->log(__METHOD__. "callback = ".print_r($this ->callback,true));
+            $this ->log(__METHOD__." pack finish body === ".$this ->content);
             call_user_func_array($this ->callback, array('r' => 0, 'key' => '', 'data' =>$this ->content));
             //TODO 合包完成，回调
         }else{
@@ -297,9 +303,13 @@ class HttpTestClient extends TestClient{
             $this ->content = $parts[1];
         }
 
-        print_r($this ->respHeader);
+        //print_r($this ->respHeader);
+        $this ->log(__METHOD__." header == ".print_r($this ->respHeader,true));
     }
 
+    public function test($r, $k, $data){
+        echo " r = $r k = $k data = ". print_r($data,true);
+    }
 
 	/**
 	 * [log 简单的LOG]

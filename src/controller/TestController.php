@@ -3,7 +3,7 @@
  * @Author: winterswang
  * @Date:   2015-02-28 11:11:33
  * @Last Modified by:   winterswang
- * @Last Modified time: 2015-04-11 17:24:54
+ * @Last Modified time: 2015-05-01 17:08:07
  */
 
 class TestController {
@@ -23,12 +23,14 @@ class TestController {
         // $fdinfo = $this->server->connection_info($this ->fd,$this ->from_id);
         // var_dump($fdinfo);
 
-        //$time = microtime(true);
-        //$log = __METHOD__." begin test function time = $time \n";
+        $time = microtime(true);
+        $this ->log(__METHOD__." begin test function time = $time \n");
         //error_log($log ,3, '/tmp/press.log');
 
         //multicall test
-        $data = (yield $this ->callTest());
+        //$data = (yield $this ->callTest());
+        //http get test
+        $data = (yield $this ->httpTest());
         //udp test
         //$data = (yield $this ->test2());
         //tcp test
@@ -144,6 +146,31 @@ class TestController {
         $res = (yield $this ->mulitcall());
         if ($res['r'] == 0) {
             $data = $res['data'];
+        }
+        yield $data;
+    }
+
+
+    public function http(){
+        $this ->log(__METHOD__);
+        $hc = new HttpTestClient('https://10.213.168.89:20080');
+        $data = array(
+            'appid' => 1103975132,
+            'secret' => 'B64zmsOwsf63Jfc3',
+            );
+        $res =(yield $hc->get('token', $data));
+        yield $res;
+    }
+
+    public function httpTest(){
+        $res =(yield $this ->http());
+        $this ->log(__METHOD__." res = ".print_r($res,true));
+        if ($res['r'] == 0) {
+            $data = $res['data'];
+        }
+        else{
+            $this ->log(__METHOD__."get http failed res = ".print_r($res,true));
+            yield $res['data'];
         }
         yield $data;
     }
